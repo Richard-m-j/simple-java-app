@@ -1,4 +1,4 @@
-// @Library('my-shared-library') _
+@Library('my-shared-library') _
 
 pipeline{
 
@@ -24,12 +24,12 @@ pipeline{
     stages{
          
         stage('Git Checkout'){
-                    when { expression {  params.action == 'create' } }
+                    // when { expression {  params.action == 'create' } }
             steps{
-            gitCheckout(
-                branch: "main",
-                url: "https://github.com/RichardJosephUST/richard-java-app.git"
-            )
+                gitCheckout(
+                    branch: "main",
+                    url: "https://github.com/Richard-m-j/simple-java-app.git"
+                )
             }
         }
     //      stage('Unit Test maven'){
