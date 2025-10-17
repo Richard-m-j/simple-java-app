@@ -32,17 +32,17 @@ pipeline{
                 )
             }
         }
-    //      stage('Unit Test maven'){
-         
-    //      when { expression {  params.action == 'create' } }
+        stage('Unit Test maven'){
+        
+            // when { expression {  params.action == 'create' } }
 
-    //         steps{
-    //            script{
-                   
-    //                mvnTest()
-    //            }
-    //         }
-    //     }
+            steps{
+                script{
+                    
+                    mvnTest()
+                }
+            }
+        }
     //      stage('Integration Test maven'){
     //      when { expression {  params.action == 'create' } }
     //         steps{
