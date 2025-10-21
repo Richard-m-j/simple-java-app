@@ -35,6 +35,8 @@ sudo apt install docker-ce -y
 
 sudo chmod 777 /var/run/docker.sock
 
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
 
 # INSTALL SONARQUBE
   
