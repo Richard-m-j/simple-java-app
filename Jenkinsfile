@@ -61,7 +61,7 @@ pipeline{
             }
         }
         stage('Quality Gate Status Check : Sonarqube'){
-         when { expression {  params.action == 'create' } }
+            when { expression {  params.action == 'create' } }
             steps{
                script{
                    
@@ -71,7 +71,7 @@ pipeline{
             }
         }
         stage('Maven Build : maven'){
-         when { expression {  params.action == 'create' } }
+            when { expression {  params.action == 'create' } }
             steps{
                script{
                    
@@ -80,22 +80,21 @@ pipeline{
             }
         }
         stage('Docker Image Build'){
-         when { expression {  params.action == 'create' } }
+            when { expression {  params.action == 'create' } }
             steps{
                script{
                    dockerBuild("${params.DockerHubUser}","${params.ImageName}","${params.ImageTag}")
                }
             }
         }
-    //      stage('Docker Image Scan: trivy '){
-    //      when { expression {  params.action == 'create' } }
-    //         steps{
-    //            script{
-                   
-    //                dockerImageScan("${params.ImageName}","${params.ImageTag}","${params.DockerHubUser}")
-    //            }
-    //         }
-    //     }
+        stage('Docker Image Scan: trivy '){
+            when { expression {  params.action == 'create' } }
+            steps{
+               script{
+                   dockerImageScan("${params.DockerHubUser}","${params.ImageName}","${params.ImageTag}")
+               }
+           }
+        }
     //     stage('Docker Image Push : DockerHub '){
     //      when { expression {  params.action == 'create' } }
     //         steps{
