@@ -12,9 +12,9 @@ pipeline{
         string(name: 'ECR_REPO_NAME', description: "name of the ECR", defaultValue: 'richard')
         string(name: 'cluster', description: "name of the EKS Cluster", defaultValue: 'demo-cluster1')
     }
-    environment{
-        // AWS CREDENTIALS WILL BE HANDLED BY withCredentials
-    }
+    // environment{
+    //     // AWS CREDENTIALS WILL BE HANDLED BY withCredentials
+    // }
 
     stages{
          
