@@ -126,10 +126,10 @@ pipeline{
                             timeout(time: 30, unit: 'MINUTES') {
                             sh """
                                 set -euo pipefail
-                                echo '== Environment Checks =='
-                                echo "AWS_ACCESS_KEY_ID set? ${AWS_ACCESS_KEY_ID:+yes}" || true
-                                echo "AWS_SECRET_ACCESS_KEY set? ${AWS_SECRET_ACCESS_KEY:+yes}" || true
-                                echo "AWS_SESSION_TOKEN set? ${AWS_SESSION_TOKEN:+yes}" || true
+                                    echo '== Environment Checks =='
+                                    if [ -n "$AWS_ACCESS_KEY_ID" ]; then echo 'AWS_ACCESS_KEY_ID set? yes'; else echo 'AWS_ACCESS_KEY_ID set? no'; fi
+                                    if [ -n "$AWS_SECRET_ACCESS_KEY" ]; then echo 'AWS_SECRET_ACCESS_KEY set? yes'; else echo 'AWS_SECRET_ACCESS_KEY set? no'; fi
+                                    if [ -n "$AWS_SESSION_TOKEN" ]; then echo 'AWS_SESSION_TOKEN set? yes'; else echo 'AWS_SESSION_TOKEN set? no'; fi
                                 export AWS_REGION='${params.Region}'
                                 export TF_INPUT=0
                                 export TF_LOG=INFO
