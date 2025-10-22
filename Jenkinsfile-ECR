@@ -51,9 +51,8 @@ pipeline{
             when { expression {  params.action == 'create' } }
             steps{
                script{
-                   
                    def SonarQubecredentialsId = 'sonarqube-api'
-                   statiCodeAnalysis(SonarQubecredentialsId)
+                   staticCodeAnalysis(SonarQubecredentialsId)
                }
             }
         }
@@ -63,19 +62,19 @@ pipeline{
                script{
                    
                    def SonarQubecredentialsId = 'sonarqube-api'
-                   QualityGateStatus(SonarQubecredentialsId)
+                   qualityGateStatus(SonarQubecredentialsId)
                }
             }
         }
         stage('Maven Build : maven'){
             when { expression {  params.action == 'create' } }
             steps{
-                script{
+               script{
                    
-                    mvnBuild()
-                }
+                   mvnBuild()
+               }
             }
-         }
+        }
         stage('Docker Image Build : ECR'){
             when { expression {  params.action == 'create' } }
             steps{
