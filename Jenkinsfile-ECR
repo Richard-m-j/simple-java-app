@@ -124,29 +124,30 @@ pipeline{
                     ]) {
                         dir('eks_module') {
                             timeout(time: 30, unit: 'MINUTES') {
-                            sh """
-                                set -euo pipefail
-                                    echo '== Environment Checks =='
-                                    if [ -n "$AWS_ACCESS_KEY_ID" ]; then echo 'AWS_ACCESS_KEY_ID set? yes'; else echo 'AWS_ACCESS_KEY_ID set? no'; fi
-                                    if [ -n "$AWS_SECRET_ACCESS_KEY" ]; then echo 'AWS_SECRET_ACCESS_KEY set? yes'; else echo 'AWS_SECRET_ACCESS_KEY set? no'; fi
-                                    if [ -n "$AWS_SESSION_TOKEN" ]; then echo 'AWS_SESSION_TOKEN set? yes'; else echo 'AWS_SESSION_TOKEN set? no'; fi
-                                export AWS_REGION='${params.Region}'
-                                export TF_INPUT=0
-                                export TF_LOG=INFO
-                                export TF_LOG_PATH="${WORKSPACE}/terraform.log"
-                                echo '== AWS STS Caller Identity ==' 
-                                aws sts get-caller-identity || true
-                                echo '== Terraform Version ==' 
-                                terraform version
-                                echo '== Terraform Init ==' 
-                                terraform init -input=false -no-color
-                                echo '== Terraform Validate ==' 
-                                terraform validate || true
-                                echo '== Terraform Plan ==' 
-                                terraform plan -input=false -no-color -lock=false -var "region=${params.Region}" --var-file=./config/terraform.tfvars
-                                echo '== Terraform Apply ==' 
-                                terraform apply -input=false -no-color -lock=false -var "region=${params.Region}" --var-file=./config/terraform.tfvars --auto-approve
-                            """
+                                                                // Use single quotes to avoid Groovy interpolation of credential env vars; explicitly invoke bash for pipefail
+                                                                sh '''#!/usr/bin/env bash
+set -euo pipefail
+echo "== Environment Checks =="
+for v in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
+    if [ -n "${!v:-}" ]; then echo "$v set? yes"; else echo "$v set? no"; fi
+done
+export AWS_REGION='${params.Region}'
+export TF_INPUT=0
+export TF_LOG=INFO
+export TF_LOG_PATH="$WORKSPACE/terraform.log"
+echo '== AWS STS Caller Identity =='
+aws sts get-caller-identity || true
+echo '== Terraform Version =='
+terraform version
+echo '== Terraform Init =='
+terraform init -input=false -no-color
+echo '== Terraform Validate =='
+terraform validate || true
+echo '== Terraform Plan =='
+terraform plan -input=false -no-color -lock=false -var "region=${params.Region}" --var-file=./config/terraform.tfvars
+echo '== Terraform Apply =='
+terraform apply -input=false -no-color -lock=false -var "region=${params.Region}" --var-file=./config/terraform.tfvars --auto-approve
+'''
                             }
                             // Archive terraform.log even if build unstable
                             script {
