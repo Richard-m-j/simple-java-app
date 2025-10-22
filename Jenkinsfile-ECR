@@ -123,11 +123,37 @@ pipeline{
                         string(credentialsId: 'AWS_SESSION_TOKEN', variable: 'AWS_SESSION_TOKEN')
                     ]) {
                         dir('eks_module') {
+                            timeout(time: 30, unit: 'MINUTES') {
                             sh """
-                                terraform init
-                                terraform plan -var 'region=${params.Region}' --var-file=./config/terraform.tfvars
-                                terraform apply -var 'region=${params.Region}' --var-file=./config/terraform.tfvars --auto-approve
+                                set -euo pipefail
+                                echo '== Environment Checks =='
+                                echo "AWS_ACCESS_KEY_ID set? ${AWS_ACCESS_KEY_ID:+yes}" || true
+                                echo "AWS_SECRET_ACCESS_KEY set? ${AWS_SECRET_ACCESS_KEY:+yes}" || true
+                                echo "AWS_SESSION_TOKEN set? ${AWS_SESSION_TOKEN:+yes}" || true
+                                export AWS_REGION='${params.Region}'
+                                export TF_INPUT=0
+                                export TF_LOG=INFO
+                                export TF_LOG_PATH="${WORKSPACE}/terraform.log"
+                                echo '== AWS STS Caller Identity ==' 
+                                aws sts get-caller-identity || true
+                                echo '== Terraform Version ==' 
+                                terraform version
+                                echo '== Terraform Init ==' 
+                                terraform init -input=false -no-color
+                                echo '== Terraform Validate ==' 
+                                terraform validate || true
+                                echo '== Terraform Plan ==' 
+                                terraform plan -input=false -no-color -lock=false -var "region=${params.Region}" --var-file=./config/terraform.tfvars
+                                echo '== Terraform Apply ==' 
+                                terraform apply -input=false -no-color -lock=false -var "region=${params.Region}" --var-file=./config/terraform.tfvars --auto-approve
                             """
+                            }
+                            // Archive terraform.log even if build unstable
+                            script {
+                                if (fileExists("${env.WORKSPACE}/terraform.log")) {
+                                    archiveArtifacts artifacts: 'terraform.log', onlyIfSuccessful: false
+                                }
+                            }
                         }
                     }
                 }
