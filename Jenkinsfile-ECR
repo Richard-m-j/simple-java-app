@@ -12,9 +12,6 @@ pipeline{
         string(name: 'ECR_REPO_NAME', description: "name of the ECR", defaultValue: 'richard')
         string(name: 'cluster', description: "name of the EKS Cluster", defaultValue: 'demo-cluster1')
     }
-    // environment{
-    //     // AWS CREDENTIALS WILL BE HANDLED BY withCredentials
-    // }
 
     stages{
          
@@ -99,7 +96,7 @@ pipeline{
                    withCredentials([
                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                        string(credentialsId: 'AWS_SECRET_KEY_ID', variable: 'AWS_SECRET_ACCESS_KEY'),
-                       string(credentialsId: 'AWS_SESSION_TOKEN', variable: 'AWS_SESSION_TOKEN')
+                    //    string(credentialsId: 'AWS_SESSION_TOKEN', variable: 'AWS_SESSION_TOKEN')
                    ]) {
                        dockerImagePushECR("${params.aws_account_id}","${params.Region}","${params.ECR_REPO_NAME}")
                    }
