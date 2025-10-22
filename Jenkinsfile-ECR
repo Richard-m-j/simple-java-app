@@ -15,12 +15,12 @@ pipeline{
     stages{
          
         stage('Git Checkout'){
-                    when { expression {  params.action == 'create' } }
+            when { expression {  params.action == 'create' } }
             steps{
-            gitCheckout(
-                branch: "main",
+                gitCheckout(
+                    branch: "main",
                     url: "https://github.com/Richard-m-j/simple-java-app.git"
-            )
+                )
             }
         }
         // stage('Unit Test maven'){
