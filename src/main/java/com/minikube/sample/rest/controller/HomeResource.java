@@ -1,11 +1,9 @@
 package com.minikube.sample.rest.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minikube.sample.properties.PropertiesConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +22,16 @@ public class HomeResource {
 	@Autowired
 	PropertiesConfig config;
 
+	@Value("${EVN_DEPOLYED:local}")
+	private String environment;
+
     @GetMapping("/data")
     public ResponseEntity<ResponseData> getData() {
         ResponseData responseData = new ResponseData();
         responseData.setId(1);
         responseData.setName(config.getName());
         responseData.setPlace("Hyderabad");
+        responseData.setEnvironment(environment);
         responseData.setValue(config.getTest());
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
@@ -40,6 +42,7 @@ public class HomeResource {
         private String name;
         private Integer id;
         private String place;
+        private String environment;
         private String value;
     }
 }
