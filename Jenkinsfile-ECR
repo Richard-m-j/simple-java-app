@@ -161,6 +161,7 @@ echo "[$(ts)] Apply completed"
 """
                                 }
                             }
+                            //empty
                             // Archive terraform.log even if build unstable
                             script {
                                 if (fileExists("${env.WORKSPACE}/terraform.log")) {
