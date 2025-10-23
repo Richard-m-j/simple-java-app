@@ -126,7 +126,7 @@ pipeline{
                             timeout(time: 30, unit: 'MINUTES') {
                                 withEnv(["REGION=${params.Region}", "AWS_REGION=${params.Region}"]) {
                                     // Use GString for region interpolation only via withEnv; credentials masked
-                                    sh """#!/usr/bin/env bash
+                                    sh '''#!/usr/bin/env bash
 set -euo pipefail
 ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 echo "[$(ts)] Starting Terraform diagnostic stage"
@@ -158,14 +158,21 @@ if [ "$PLAN_RC" -ne 0 ]; then echo "Plan failed; tail of debug log:"; tail -n 10
 echo '== Terraform Apply =='
 terraform apply -input=false -no-color -lock=false -var "region=$REGION" --var-file=./config/terraform.tfvars --auto-approve
 echo "[$(ts)] Apply completed"
-"""
+'''
                                 }
                             }
                             //empty
                             // Archive terraform.log even if build unstable
                             script {
+                                def artifactsToArchive = []
                                 if (fileExists("${env.WORKSPACE}/terraform.log")) {
-                                    archiveArtifacts artifacts: 'terraform.log', onlyIfSuccessful: false
+                                    artifactsToArchive << 'terraform.log'
+                                }
+                                if (fileExists("${env.WORKSPACE}/terraform-plan-debug.log")) {
+                                    artifactsToArchive << 'terraform-plan-debug.log'
+                                }
+                                if (artifactsToArchive) {
+                                    archiveArtifacts artifacts: artifactsToArchive.join(','), onlyIfSuccessful: false
                                 }
                             }
                         }
