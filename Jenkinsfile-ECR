@@ -123,58 +123,11 @@ pipeline{
                         string(credentialsId: 'AWS_SESSION_TOKEN', variable: 'AWS_SESSION_TOKEN')
                     ]) {
                         dir('eks_module') {
-                            timeout(time: 30, unit: 'MINUTES') {
-                                withEnv(["REGION=${params.Region}", "AWS_REGION=${params.Region}"]) {
-                                    // Use GString for region interpolation only via withEnv; credentials masked
-                                    sh '''#!/usr/bin/env bash
-set -euo pipefail
-ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
-echo "[$(ts)] Starting Terraform diagnostic stage"
-echo "== Environment Checks =="
-if [ -n "$AWS_ACCESS_KEY_ID" ]; then echo 'AWS_ACCESS_KEY_ID set? yes'; else echo 'AWS_ACCESS_KEY_ID set? no'; fi
-if [ -n "$AWS_SECRET_ACCESS_KEY" ]; then echo 'AWS_SECRET_ACCESS_KEY set? yes'; else echo 'AWS_SECRET_ACCESS_KEY set? no'; fi
-if [ -n "$AWS_SESSION_TOKEN" ]; then echo 'AWS_SESSION_TOKEN set? yes'; else echo 'AWS_SESSION_TOKEN set? no'; fi
-export TF_INPUT=0
-export TF_LOG=INFO
-export TF_LOG_PATH="$WORKSPACE/terraform.log"
-export AWS_MAX_ATTEMPTS=2
-echo "[$(ts)] AWS CLI version:"; aws --version || true
-echo '== AWS STS Caller Identity =='
-aws sts get-caller-identity || true
-echo "[$(ts)] Describe availability zones sanity check"
-aws ec2 describe-availability-zones --region "$REGION" --query 'AvailabilityZones[*].ZoneName' --output text || true
-echo "[$(ts)] Simple network connectivity to sts.amazonaws.com"; getent hosts sts.amazonaws.com 2>/dev/null || nslookup sts.amazonaws.com || true
-echo '== Terraform Version =='
-terraform version
-echo '== Terraform Init =='
-terraform init -input=false -no-color
-echo '== Terraform Validate =='
-terraform validate || true
-echo '== Terraform Plan =='
-echo "[$(ts)] Enabling DEBUG log for plan"; TF_LOG=DEBUG TF_LOG_PATH="$WORKSPACE/terraform-plan-debug.log" terraform plan -input=false -no-color -lock=false -var "region=$REGION" --var-file=./config/terraform.tfvars || PLAN_RC=$?
-PLAN_RC=${PLAN_RC:-0}
-echo "[$(ts)] Plan exit code: $PLAN_RC"
-if [ "$PLAN_RC" -ne 0 ]; then echo "Plan failed; tail of debug log:"; tail -n 100 "$WORKSPACE/terraform-plan-debug.log" || true; exit $PLAN_RC; fi
-echo '== Terraform Apply =='
-terraform apply -input=false -no-color -lock=false -var "region=$REGION" --var-file=./config/terraform.tfvars --auto-approve
-echo "[$(ts)] Apply completed"
-'''
-                                }
-                            }
-                            //empty
-                            // Archive terraform.log even if build unstable
-                            script {
-                                def artifactsToArchive = []
-                                if (fileExists("${env.WORKSPACE}/terraform.log")) {
-                                    artifactsToArchive << 'terraform.log'
-                                }
-                                if (fileExists("${env.WORKSPACE}/terraform-plan-debug.log")) {
-                                    artifactsToArchive << 'terraform-plan-debug.log'
-                                }
-                                if (artifactsToArchive) {
-                                    archiveArtifacts artifacts: artifactsToArchive.join(','), onlyIfSuccessful: false
-                                }
-                            }
+                            sh """
+                                terraform init
+                                terraform plan -var 'region=${params.Region}' --var-file=./config/terraform.tfvars
+                                terraform apply -var 'region=${params.Region}' --var-file=./config/terraform.tfvars --auto-approve
+                            """
                         }
                     }
                 }
